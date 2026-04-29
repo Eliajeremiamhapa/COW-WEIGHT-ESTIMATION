@@ -4,6 +4,8 @@ from fastapi import FastAPI, File, UploadFile, Form
 from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 import math
+import httpx
+import asyncio
 
 app = FastAPI()
 
@@ -14,6 +16,25 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# --- SEHEMU YA KUIAMSHA SERVER (KEEP-ALIVE) ---
+async def keep_server_awake():
+    """Inatuma ping kila baada ya dakika 10 kuzuia Render isilale"""
+    await asyncio.sleep(10) # Subiri kidogo baada ya kuwaka
+    async with httpx.AsyncClient() as client:
+        while True:
+            try:
+                # Inajitumia request yenyewe
+                await client.get("https://cow-weight-estimation.onrender.com/")
+                print("Server Keep-Alive: Ping successful")
+            except Exception as e:
+                print(f"Keep-Alive Error: {e}")
+            await asyncio.sleep(600) # Subiri dakika 10
+
+@app.on_event("startup")
+async def startup_event():
+    asyncio.create_task(keep_server_awake())
+# ----------------------------------------------
 
 def convert_numpy_types(obj):
     if isinstance(obj, np.integer):
