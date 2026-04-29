@@ -1,11 +1,9 @@
 import cv2
 import numpy as np
-from fastapi import FastAPI, File, UploadFile, Form, BackgroundTasks
+from fastapi import FastAPI, File, UploadFile, Form
 from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 import math
-import httpx
-import asyncio
 
 app = FastAPI()
 
@@ -16,24 +14,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# --- SEHEMU YA KUIAMSHA API (KEEP-ALIVE LOGIC) ---
-async def keep_alive():
-    """Inatuma ping kila baada ya dakika 10 kuzuia Render isilale"""
-    async with httpx.AsyncClient() as client:
-        while True:
-            await asyncio.sleep(600)  # Dakika 10 (600 seconds)
-            try:
-                # Badilisha 'smartcow-api.onrender.com' na URL yako halisi ya Render
-                await client.get("https://cow-weight-estimation.onrender.com/")
-                print("Self-ping successful: API is awake!")
-            except Exception as e:
-                print(f"Self-ping failed: {e}")
-
-@app.on_event("startup")
-async def startup_event():
-    asyncio.create_task(keep_alive())
-# -----------------------------------------------
 
 def convert_numpy_types(obj):
     if isinstance(obj, np.integer):
